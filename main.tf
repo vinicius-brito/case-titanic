@@ -1,7 +1,9 @@
+# --------- Provider ---------
 provider "aws" {
   region = "us-east-1"
 }
 
+# --------- Definição Lambda Function ---------
 resource "aws_lambda_function" "api_sobreviventes" {
   function_name = "api_sobreviventes"
   image_uri     = "021891584200.dkr.ecr.us-east-1.amazonaws.com/case_itau:v10"
@@ -76,7 +78,7 @@ resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-resource "aws_api_gateway_account" "account" {  # Nova configuração de conta adicionada
+resource "aws_api_gateway_account" "account" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_cloudwatch_role.arn
 }
 
@@ -110,57 +112,6 @@ resource "aws_api_gateway_method" "post_sobreviventes" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_integration" "get_sobreviventes_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.resource_sobreviventes.id
-  http_method             = aws_api_gateway_method.get_sobreviventes.http_method
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.api_sobreviventes.invoke_arn
-}
-
-resource "aws_api_gateway_integration" "post_sobreviventes_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.resource_sobreviventes.id
-  http_method             = aws_api_gateway_method.post_sobreviventes.http_method
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.api_sobreviventes.invoke_arn
-}
-
-resource "aws_api_gateway_integration" "delete_sobreviventes_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.resource_sobreviventes.id
-  http_method             = aws_api_gateway_method.delete_sobreviventes.http_method
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.api_sobreviventes.invoke_arn
-}
-
-resource "aws_lambda_permission" "api_gateway_get_sobreviventes" {
-  statement_id  = "AllowAPIGatewayInvokeGetSobreviventes"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.api_sobreviventes.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/GET/sobreviventes"
-}
-
-resource "aws_lambda_permission" "api_gateway_post_sobreviventes" {
-  statement_id  = "AllowAPIGatewayInvokePostSobreviventes"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.api_sobreviventes.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/POST/sobreviventes"
-}
-
-resource "aws_lambda_permission" "api_gateway_delete_sobreviventes" {
-  statement_id  = "AllowAPIGatewayInvokeDeleteSobreviventes"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.api_sobreviventes.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/DELETE/sobreviventes"
-}
-
 resource "aws_api_gateway_method" "delete_sobreviventes" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.resource_sobreviventes.id
@@ -168,8 +119,34 @@ resource "aws_api_gateway_method" "delete_sobreviventes" {
   authorization = "NONE"
 }
 
+resource "aws_api_gateway_integration" "sobreviventes_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.resource_sobreviventes.id
+  http_method             = "ANY"
+  type                    = "AWS_PROXY"
+  integration_http_method = "POST"
+  uri                     = aws_lambda_function.api_sobreviventes.invoke_arn
+}
+
+resource "aws_lambda_permission" "api_gateway_sobreviventes" {
+  statement_id  = "AllowAPIGatewayInvokeGetSobreviventes"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.api_sobreviventes.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*/sobreviventes"
+}
+
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.api.id
+
+  depends_on = [
+    aws_api_gateway_integration.get_sobreviventes_integration,
+    aws_api_gateway_integration.post_sobreviventes_integration,
+    aws_api_gateway_integration.delete_sobreviventes_integration,
+    aws_lambda_permission.api_gateway_get_sobreviventes,
+    aws_lambda_permission.api_gateway_post_sobreviventes,
+    aws_lambda_permission.api_gateway_delete_sobreviventes
+  ]
 }
 
 resource "aws_api_gateway_stage" "stage" {

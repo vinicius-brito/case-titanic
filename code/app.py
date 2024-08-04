@@ -118,6 +118,8 @@ def get_sobreviventes():
     '''Rota GET que retorna todos os sobreviventes salvos no banco de dados.'''
     response = table.scan()
     sobreviventes = response['Items']
+    for sobrevivente in sobreviventes:
+        sobrevivente['probabilidade_sobrevivencia'] = sobrevivente['probabilidade_sobrevivencia'] / 100 # necessário dividir por 100 para retornar como float
     return sobreviventes
 
 @app.get("/sobreviventes/{id_passageiro}")

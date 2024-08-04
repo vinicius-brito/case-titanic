@@ -84,25 +84,39 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "dynamodb:UpdateItem",
           "dynamodb:DeleteItem",
           "dynamodb:Scan",
-          "dynamodb:Query"
+          "dynamodb:Query",
+          "logs:DescribeLogStreams",
+          "logs:PutLogEvents"
         ]
         Effect   = "Allow"
-        Resource = aws_dynamodb_table.sobreviventes.arn
+        Resource = [
+          aws_dynamodb_table.sobreviventes.arn,
+          aws_cloudwatch_log_group.api.arn,
+          "${aws_cloudwatch_log_group.api.arn}:*"
+        ]
       },
     ]
   })
 
   depends_on = [
-    aws_dynamodb_table.sobreviventes
+    aws_dynamodb_table.sobreviventes,
+    aws_cloudwatch_log_group.api
   ]
 }
 
-# --- Lambda ---
+# --- CloudWatch ---
 
 resource "aws_cloudwatch_log_group" "api" {
   name              = "/aws/lambda/api"
   retention_in_days = 14
 }
+
+resource "aws_cloudwatch_log_stream" "api" {
+  name           = "api-log-stream"
+  log_group_name = aws_cloudwatch_log_group.api.name
+}
+
+# --- Lambda ---
 
 resource "aws_lambda_function" "api" {
   function_name    = "api"
@@ -110,12 +124,15 @@ resource "aws_lambda_function" "api" {
   image_uri        = "${aws_ecr_repository.api.repository_url}:latest"
   package_type     = "Image"
   source_code_hash = trimprefix(data.aws_ecr_image.latest.id, "sha256:")
-  timeout          = 15
+  timeout          = 30
 
   environment {
     variables = {
-      DYNAMODB_TABLE = aws_dynamodb_table.sobreviventes.name
-      S3_BUCKET      = aws_s3_bucket.titanic_bucket.bucket
+      DYNAMODB_TABLE        = aws_dynamodb_table.sobreviventes.name
+      S3_BUCKET             = aws_s3_bucket.titanic_bucket.bucket
+      ENVIRONMENT           = "prd"
+      CLOUDWATCH_LOG_GROUP  = aws_cloudwatch_log_group.api.name
+      CLOUDWATCH_LOG_STREAM = aws_cloudwatch_log_stream.api.name
     }
   }
 
@@ -124,7 +141,9 @@ resource "aws_lambda_function" "api" {
     aws_iam_role_policy_attachment.lambda_logs,
     aws_cloudwatch_log_group.api,
     aws_dynamodb_table.sobreviventes,
-    aws_s3_bucket.titanic_bucket
+    aws_s3_bucket.titanic_bucket,
+    aws_cloudwatch_log_group.api,
+    aws_cloudwatch_log_stream.api
   ]
 }
 

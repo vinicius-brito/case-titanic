@@ -171,11 +171,6 @@ resource "aws_s3_bucket" "titanic_bucket" {
   bucket = "vb-titanic-case"
 }
 
-resource "aws_s3_bucket_acl" "titanic_bucket_acl" {
-  bucket = aws_s3_bucket.titanic_bucket.id
-  acl    = "private"
-}
-
 # --- IAM Policy for S3 Access ---
 
 data "aws_iam_policy_document" "lambda_s3_policy" {

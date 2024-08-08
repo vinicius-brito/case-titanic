@@ -134,8 +134,7 @@ async def log_request(request: Request, call_next):
 
 @app.get("/")
 def index():
-    ''' Rota de boas-vindas da aplicação.
-    '''
+    ''' Rota de boas-vindas da aplicação.'''
     return "Hello, from AWS Lambda! This is an API for scoring Titanic passengers survival probability."
 
 

@@ -124,7 +124,7 @@ resource "aws_lambda_function" "api" {
   image_uri        = "${aws_ecr_repository.api.repository_url}:latest"
   package_type     = "Image"
   source_code_hash = trimprefix(data.aws_ecr_image.latest.id, "sha256:")
-  timeout          = 30
+  timeout          = 60
 
   environment {
     variables = {
@@ -210,4 +210,187 @@ resource "aws_iam_role_policy" "lambda_s3_policy" {
   name   = "lambda_s3_policy"
   role   = aws_iam_role.lambda.id
   policy = data.aws_iam_policy_document.lambda_s3_policy.json
+}
+
+# ----------------------------------------------------- API Gateway ---------------------------------------------------------------------
+
+resource "aws_api_gateway_rest_api" "my_api" {
+  name = "my-api"
+  description = "My API Gateway"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+# ---------- /hello  ----------
+
+resource "aws_api_gateway_resource" "hello" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  parent_id   = aws_api_gateway_rest_api.my_api.root_resource_id
+  path_part   = "hello"
+}
+
+resource "aws_api_gateway_integration" "hello_get" {
+  rest_api_id             = aws_api_gateway_rest_api.my_api.id
+  resource_id             = aws_api_gateway_resource.hello.id
+  http_method             = aws_api_gateway_method.proxy_hello.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.api.invoke_arn
+}
+
+resource "aws_api_gateway_method" "proxy_hello" {
+  rest_api_id   = aws_api_gateway_rest_api.my_api.id
+  resource_id   = aws_api_gateway_resource.hello.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "proxy_hello" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  resource_id = aws_api_gateway_resource.hello.id
+  http_method = aws_api_gateway_method.proxy_hello.http_method
+  status_code = "200"
+}
+
+resource "aws_api_gateway_integration_response" "proxy_hello" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  resource_id = aws_api_gateway_resource.hello.id
+  http_method = aws_api_gateway_method.proxy_hello.http_method
+  status_code = aws_api_gateway_method_response.proxy_hello.status_code
+
+  depends_on = [
+    aws_api_gateway_method.proxy_hello,
+    aws_api_gateway_integration.hello_get
+  ]
+}
+
+# ---------- /sobreviventes ----------
+
+# ------ Gateway Resources ---------
+
+resource "aws_api_gateway_resource" "sobreviventes" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  parent_id   = aws_api_gateway_rest_api.my_api.root_resource_id
+  path_part   = "sobreviventes"
+}
+
+resource "aws_api_gateway_resource" "survivor_id" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  parent_id   = aws_api_gateway_resource.sobreviventes.id
+  path_part   = "{id}"
+}
+
+# ------ Gateway Method ---------
+
+resource "aws_api_gateway_method" "get_survivor_by_id" {
+  rest_api_id   = aws_api_gateway_rest_api.my_api.id
+  resource_id   = aws_api_gateway_resource.survivor_id.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method" "proxy_sobreviventes" {
+  rest_api_id   = aws_api_gateway_rest_api.my_api.id
+  resource_id   = aws_api_gateway_resource.sobreviventes.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method" "post_sobreviventes" {
+  rest_api_id   = aws_api_gateway_rest_api.my_api.id
+  resource_id   = aws_api_gateway_resource.sobreviventes.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method" "delete_survivor_by_id" {
+  rest_api_id   = aws_api_gateway_rest_api.my_api.id
+  resource_id   = aws_api_gateway_resource.survivor_id.id
+  http_method   = "DELETE"
+  authorization = "NONE"
+}
+
+# ----------- Method Response ----------
+
+resource "aws_api_gateway_method_response" "proxy_sobreviventes" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  resource_id = aws_api_gateway_resource.sobreviventes.id
+  http_method = aws_api_gateway_method.proxy_sobreviventes.http_method
+  status_code = "200"
+}
+
+# ------ Gateway Integrations ----------
+
+resource "aws_api_gateway_integration" "sobreviventes_get" {
+  rest_api_id             = aws_api_gateway_rest_api.my_api.id
+  resource_id             = aws_api_gateway_resource.sobreviventes.id
+  http_method             = aws_api_gateway_method.proxy_sobreviventes.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.api.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "get_survivor_by_id" {
+  rest_api_id             = aws_api_gateway_rest_api.my_api.id
+  resource_id             = aws_api_gateway_resource.survivor_id.id
+  http_method             = aws_api_gateway_method.get_survivor_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.api.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "sobreviventes_post" {
+  rest_api_id             = aws_api_gateway_rest_api.my_api.id
+  resource_id             = aws_api_gateway_resource.sobreviventes.id
+  http_method             = aws_api_gateway_method.post_sobreviventes.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.api.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "delete_survivor_by_id" {
+  rest_api_id             = aws_api_gateway_rest_api.my_api.id
+  resource_id             = aws_api_gateway_resource.sobreviventes.id
+  http_method             = aws_api_gateway_method.delete_survivor_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.api.invoke_arn
+}
+
+# ---------- Integration Response ----------
+
+resource "aws_api_gateway_integration_response" "proxy_sobreviventes" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  resource_id = aws_api_gateway_resource.sobreviventes.id
+  http_method = aws_api_gateway_method.proxy_sobreviventes.http_method
+  status_code = aws_api_gateway_method_response.proxy_sobreviventes.status_code
+
+  depends_on = [
+    aws_api_gateway_method.proxy_sobreviventes,
+    aws_api_gateway_integration.sobreviventes_get,
+    aws_api_gateway_integration.sobreviventes_post,
+    aws_api_gateway_integration.delete_survivor_by_id
+  ]
+}
+
+# ------------- API Gateway Deployment ---------
+
+resource "aws_api_gateway_deployment" "deployment" {
+  depends_on = [
+    aws_api_gateway_integration.hello_get,
+    aws_api_gateway_integration.sobreviventes_get
+  ]
+
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  stage_name = "dev"
+}
+
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id = "AllowExecutionFromAPIGateway"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.api.function_name
+  principal = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_api_gateway_rest_api.my_api.execution_arn}/*/*/*"
 }

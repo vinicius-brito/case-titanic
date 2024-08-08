@@ -4,10 +4,11 @@ import pickle
 import uuid
 import warnings
 import time
+import logging
 
 import uvicorn
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from mangum import Mangum
 from typing import List
 from dotenv import load_dotenv
@@ -23,6 +24,10 @@ log_group_name = os.getenv('CLOUDWATCH_LOG_GROUP')
 log_stream_name = os.getenv('CLOUDWATCH_LOG_STREAM')
 environment=os.getenv('ENVIRONMENT')
 
+
+# Configurando o logger para capturar informações sobre as requests
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -58,13 +63,34 @@ def send_log_to_cloudwatch(message):
 
     logs_client.put_log_events(**log_event)
 
+# ------------------ Middlware ------------------ #
 
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    logger.info(f"\tUser: {request.headers.get('x-user-email')}")
+    logger.info(f'\tMethod: {request.method}')
+    logger.info(f'\tPath: {request.url.path}')
+    logger.info(f'\tQuery Parameters: {request.query_params}')
+    logger.info(f'\tBody: {await request.body()}')
+    logger.info(f'\tHeaders: {request.headers}')
+    logger.info(f'\tIP: {request.client.host}')
+    logger.info(f'\tOrigem: {request.headers.get("origin")}')
+
+    # Create a custom request object with the body intact
+    custom_request = Request(request.scope, request.receive)
+    # Pass the custom request with the body intact to the route handler
+    response = await call_next(custom_request)
+    return response
 
 # -------------------- Rotas -------------------- #
 
 @app.get("/")
 def index():
     return "Hello, from AWS Lambda!"
+
+@app.get("/hello")
+def hello_world():
+    return {"message": "Hello, World!"}
 
 
 @app.post("/sobreviventes")
@@ -82,12 +108,21 @@ def create_sobrevivente(caracteristicas: List[float]):
     # Criar identificador do passageiro
     id_passageiro = str(uuid.uuid4())
 
-    # Puxar modelo do s3
-    s3 = boto3.client('s3')
-    s3.download_file(s3_bucket, 'model.pkl', '/tmp/model.pkl')
+    # # Puxar modelo do s3
+    # s3 = boto3.client('s3')
+    # s3.download_file(s3_bucket, 'model.pkl', '/tmp/model.pkl')
+
+    # Obtém o diretório de trabalho atual
+    current_directory = os.getcwd()
+
+    # Imprime o diretório de trabalho atual
+    print("Diretório de trabalho atual:", current_directory)
+
+    # Define o caminho do arquivo model.pkl relativo ao diretório de trabalho atual
+    model_path = os.path.join(current_directory, 'tmp', 'model.pkl')
 
     # Carregar modelo
-    with open('/tmp/model.pkl', 'rb') as file:
+    with open(model_path, 'rb') as file:
         model = pickle.load(file)
     send_log_to_cloudwatch("Modelo carregado.")
 

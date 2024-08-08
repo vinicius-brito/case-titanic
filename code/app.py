@@ -1,3 +1,6 @@
+# Autor: Vinicius Eduardo Neres Brtio
+# Data: 2021-08-08
+
 import os
 import boto3
 import pickle
@@ -8,6 +11,7 @@ import logging
 
 import uvicorn
 
+from pydantic import BaseModel, field_validator, Field, ValidationError
 from fastapi import FastAPI, HTTPException, Request
 from mangum import Mangum
 from typing import List
@@ -39,6 +43,44 @@ table = dynamodb.Table(table_name)
 logs_client = boto3.client('logs')
 
 
+# -------------------- Classes -------------------- #
+
+class UserInput(BaseModel):
+    caracteristicas: List[float] = Field(
+        ...,
+        example=[22.5, 0, 1, 54.3, 2, 0, 0, 1]
+    )
+
+    @field_validator('caracteristicas')
+    def check_caracteristicas(cls, v):
+        if len(v) != 8:
+            raise HTTPException(status_code=422, detail="Número de características inválido. Esperado 8 características.")
+        if (v[4] not in [1, 2, 3]) or (v[5] not in [0, 1]) or (v[6] not in [0, 1]) or (v[7] not in [0, 1]):
+            raise HTTPException(status_code=422, detail="Características inválidas.")
+        return v
+
+class Passenger(BaseModel):
+    id: str
+    probabilidade_sobrevivencia: float
+
+class InternalErrorResponse(BaseModel):
+    detail: str
+
+class GetPassengersSuccessResponse(BaseModel):
+    sobreviventes: List[Passenger]
+
+class GetPassengerSuccessResponse(BaseModel):
+    probabilidade_sobrevivencia: float
+
+class DeletePassengerSuccessResponse(BaseModel):
+    message: str
+
+class NotFoundErrorResponse(BaseModel):
+    detail: str
+
+class DeleteSuccessResponse(BaseModel):
+    message: str
+
 # -------------------- Funções Úteis -------------------- #
 
 
@@ -63,7 +105,11 @@ def send_log_to_cloudwatch(message):
 
     logs_client.put_log_events(**log_event)
 
-# ------------------ Middlware ------------------ #
+
+
+# ------------------ Middlwares ------------------ #
+
+
 
 @app.middleware("http")
 async def log_request(request: Request, call_next):
@@ -82,29 +128,25 @@ async def log_request(request: Request, call_next):
     response = await call_next(custom_request)
     return response
 
+
+
 # -------------------- Rotas -------------------- #
 
 @app.get("/")
 def index():
-    return "Hello, from AWS Lambda!"
-
-@app.get("/hello")
-def hello_world():
-    return {"message": "Hello, World!"}
+    return "Hello, from AWS Lambda! This is an API for scoring Titanic passengers survival probability."
 
 
-@app.post("/sobreviventes")
-def create_sobrevivente(caracteristicas: List[float]):
+
+@app.post("/sobreviventes", responses={
+    200: {"model": Passenger, "description": "Sucessful Response"},
+    500: {"model": InternalErrorResponse, "description": "Internal Server Error. Indica que houve um problema ao calcular a probabilidade de sobrevivência."},
+    422: {"model": ValidationError, "description": "Validation Error. Indica que houve algum problema com as características recebidas."}
+})
+def create_sobrevivente(data: UserInput):
     '''Rota POST que espera receber uma lista de características de um sobrevivente.
     Passa essas características para o escoramento de um modelo de Machine Learning treinado no dataset do Titanic.
     '''
-    # Validação das características recebidas # Age, Parch, SibSp, Fare, Pclass, Sex_male, Embarked_Q, Embarked_S
-    if len(caracteristicas) != 8:
-        raise HTTPException(status_code=400, detail="Número de características inválido. Esperado 8 características.")
-    
-    if (caracteristicas[4] not in [1, 2, 3]) or (caracteristicas[5] not in [0, 1]) or (caracteristicas[6] not in [0, 1]) or (caracteristicas[7] not in [0, 1]):
-        raise HTTPException(status_code=400, detail="Características inválidas.")
-    
     # Criar identificador do passageiro
     id_passageiro = str(uuid.uuid4())
 
@@ -114,9 +156,6 @@ def create_sobrevivente(caracteristicas: List[float]):
 
     # Obtém o diretório de trabalho atual
     current_directory = os.getcwd()
-
-    # Imprime o diretório de trabalho atual
-    print("Diretório de trabalho atual:", current_directory)
 
     # Define o caminho do arquivo model.pkl relativo ao diretório de trabalho atual
     model_path = os.path.join(current_directory, 'tmp', 'model.pkl')
@@ -128,11 +167,11 @@ def create_sobrevivente(caracteristicas: List[float]):
 
     # Calcular a probabilidade de sobrevivência
     try:
-        probabilidade_sobrevivencia = model.predict_proba([caracteristicas])[0][1] * 100
+        probabilidade_sobrevivencia = model.predict_proba([data.caracteristicas])[0][1] * 100
         probabilidade_sobrevivencia = round(probabilidade_sobrevivencia, 2)
     except Exception as e:
         send_log_to_cloudwatch(f"Erro ao calcular a probabilidade de sobrevivência: {str(e)}")
-        raise HTTPException(status_code=500, detail="Erro ao calcular a probabilidade de sobrevivência.")
+        raise HTTPException(status_code=500, detail="Erro ao calcular a probabilidade de sobrevivência." + str(e))
 
     # Salvar no DynamoDB
     table.put_item(
@@ -148,16 +187,28 @@ def create_sobrevivente(caracteristicas: List[float]):
         "probabilidade_sobrevivencia": probabilidade_sobrevivencia
     }
 
-@app.get("/sobreviventes")
+
+
+@app.get("/sobreviventes", responses={
+    200: {"model": GetPassengersSuccessResponse, "description": "Sucessful Response"}
+})
 def get_sobreviventes():
     '''Rota GET que retorna todos os sobreviventes salvos no banco de dados.'''
     response = table.scan()
     sobreviventes = response['Items']
     for sobrevivente in sobreviventes:
         sobrevivente['probabilidade_sobrevivencia'] = sobrevivente['probabilidade_sobrevivencia'] / 100 # necessário dividir por 100 para retornar como float
-    return sobreviventes
+    return {
+        "sobreviventes": sobreviventes
+    }
 
-@app.get("/sobreviventes/{id_passageiro}")
+
+
+@app.get("/sobreviventes/{id_passageiro}", responses={
+    200: {"model": GetPassengerSuccessResponse, "description": "Sucessful Response"},
+    404: {"model": NotFoundErrorResponse, "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado."},
+    422: {"model": ValidationError, "description": "Validation Error. Indica que houve algum problema com o ID de passageiro recebido."}
+})
 def get_sobrevivente(id_passageiro: str):
     '''Rota GET que espera receber um ID de passageiro e retorna a probabilidade de sobrevivência do mesmo.'''
     
@@ -167,11 +218,16 @@ def get_sobrevivente(id_passageiro: str):
     
     probabilidade_sobrevivencia = response['Item']['probabilidade_sobrevivencia'] / 100 # necessário dividir por 100 para retornar como float
     return {
-        "id": id_passageiro,
         "probabilidade_sobrevivencia": probabilidade_sobrevivencia
     }
 
-@app.delete("/sobreviventes/{id_passageiro}")
+
+
+@app.delete("/sobreviventes/{id_passageiro}", responses={
+    200: {"model": DeleteSuccessResponse, "description": "Sucessful Response"},
+    404: {"model": NotFoundErrorResponse, "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado."},
+    422: {"model": ValidationError, "description": "Validation Error. Indica que houve algum problema com o ID de passageiro recebido."} 
+})
 def delete_sobrevivente(id_passageiro: str):
     '''Rota DELETE que espera receber um ID de passageiro e deleta o registro do banco de dados.'''
     

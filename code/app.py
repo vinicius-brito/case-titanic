@@ -134,14 +134,15 @@ async def log_request(request: Request, call_next):
 
 @app.get("/")
 def index():
+    ''' Rota de boas-vindas da aplicação.
+    '''
     return "Hello, from AWS Lambda! This is an API for scoring Titanic passengers survival probability."
 
 
 
 @app.post("/sobreviventes", responses={
     200: {"model": Passenger, "description": "Sucessful Response"},
-    500: {"model": InternalErrorResponse, "description": "Internal Server Error. Indica que houve um problema ao calcular a probabilidade de sobrevivência."},
-    422: {"model": ValidationError, "description": "Validation Error. Indica que houve algum problema com as características recebidas."}
+    500: {"model": InternalErrorResponse, "description": "Internal Server Error. Indica que houve um problema ao calcular a probabilidade de sobrevivência."}
 })
 def create_sobrevivente(data: UserInput):
     '''Rota POST que espera receber uma lista de características de um sobrevivente.
@@ -206,8 +207,7 @@ def get_sobreviventes():
 
 @app.get("/sobreviventes/{id_passageiro}", responses={
     200: {"model": GetPassengerSuccessResponse, "description": "Sucessful Response"},
-    404: {"model": NotFoundErrorResponse, "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado."},
-    422: {"model": ValidationError, "description": "Validation Error. Indica que houve algum problema com o ID de passageiro recebido."}
+    404: {"model": NotFoundErrorResponse, "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado."}
 })
 def get_sobrevivente(id_passageiro: str):
     '''Rota GET que espera receber um ID de passageiro e retorna a probabilidade de sobrevivência do mesmo.'''
@@ -225,8 +225,7 @@ def get_sobrevivente(id_passageiro: str):
 
 @app.delete("/sobreviventes/{id_passageiro}", responses={
     200: {"model": DeleteSuccessResponse, "description": "Sucessful Response"},
-    404: {"model": NotFoundErrorResponse, "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado."},
-    422: {"model": ValidationError, "description": "Validation Error. Indica que houve algum problema com o ID de passageiro recebido."} 
+    404: {"model": NotFoundErrorResponse, "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado."}
 })
 def delete_sobrevivente(id_passageiro: str):
     '''Rota DELETE que espera receber um ID de passageiro e deleta o registro do banco de dados.'''

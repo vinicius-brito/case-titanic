@@ -108,12 +108,21 @@ def create_sobrevivente(caracteristicas: List[float]):
     # Criar identificador do passageiro
     id_passageiro = str(uuid.uuid4())
 
-    # Puxar modelo do s3
-    s3 = boto3.client('s3')
-    s3.download_file(s3_bucket, 'model.pkl', '/tmp/model.pkl')
+    # # Puxar modelo do s3
+    # s3 = boto3.client('s3')
+    # s3.download_file(s3_bucket, 'model.pkl', '/tmp/model.pkl')
+
+    # Obtém o diretório de trabalho atual
+    current_directory = os.getcwd()
+
+    # Imprime o diretório de trabalho atual
+    print("Diretório de trabalho atual:", current_directory)
+
+    # Define o caminho do arquivo model.pkl relativo ao diretório de trabalho atual
+    model_path = os.path.join(current_directory, 'tmp', 'model.pkl')
 
     # Carregar modelo
-    with open('/tmp/model.pkl', 'rb') as file:
+    with open(model_path, 'rb') as file:
         model = pickle.load(file)
     send_log_to_cloudwatch("Modelo carregado.")
 

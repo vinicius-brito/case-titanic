@@ -222,7 +222,7 @@ resource "aws_api_gateway_rest_api" "my_api" {
     types = ["REGIONAL"]
   }
 }
-# ---------- Hello ----------
+# ---------- /hello  ----------
 
 resource "aws_api_gateway_resource" "hello" {
   rest_api_id = aws_api_gateway_rest_api.my_api.id
@@ -246,7 +246,26 @@ resource "aws_api_gateway_method" "proxy_hello" {
   authorization = "NONE"
 }
 
-# ---------- Sobreviventes ----------
+resource "aws_api_gateway_method_response" "proxy_hello" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  resource_id = aws_api_gateway_resource.hello.id
+  http_method = aws_api_gateway_method.proxy_hello.http_method
+  status_code = "200"
+}
+
+resource "aws_api_gateway_integration_response" "proxy_hello" {
+  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  resource_id = aws_api_gateway_resource.hello.id
+  http_method = aws_api_gateway_method.proxy_hello.http_method
+  status_code = aws_api_gateway_method_response.proxy_hello.status_code
+
+  depends_on = [
+    aws_api_gateway_method.proxy_hello,
+    aws_api_gateway_integration.hello_get
+  ]
+}
+
+# ---------- /sobreviventes ----------
 
 resource "aws_api_gateway_resource" "sobreviventes" {
   rest_api_id = aws_api_gateway_rest_api.my_api.id
@@ -269,29 +288,6 @@ resource "aws_api_gateway_method" "proxy_sobreviventes" {
   http_method   = "GET"
   authorization = "NONE"
 }
-
-# ----------- Hello - Restante -------------
-
-resource "aws_api_gateway_method_response" "proxy_hello" {
-  rest_api_id = aws_api_gateway_rest_api.my_api.id
-  resource_id = aws_api_gateway_resource.hello.id
-  http_method = aws_api_gateway_method.proxy_hello.http_method
-  status_code = "200"
-}
-
-resource "aws_api_gateway_integration_response" "proxy_hello" {
-  rest_api_id = aws_api_gateway_rest_api.my_api.id
-  resource_id = aws_api_gateway_resource.hello.id
-  http_method = aws_api_gateway_method.proxy_hello.http_method
-  status_code = aws_api_gateway_method_response.proxy_hello.status_code
-
-  depends_on = [
-    aws_api_gateway_method.proxy_hello,
-    aws_api_gateway_integration.hello_get
-  ]
-}
-
-# ----------- Sobreviventes - Restante -------------
 
 resource "aws_api_gateway_method_response" "proxy_sobreviventes" {
   rest_api_id = aws_api_gateway_rest_api.my_api.id

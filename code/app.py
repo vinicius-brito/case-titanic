@@ -1,5 +1,5 @@
 # Autor: Vinicius Eduardo Neres Brtio
-# Data: 2021-08-08
+# Data: 2024-08-08
 
 import os
 import boto3
@@ -11,7 +11,7 @@ import logging
 
 import uvicorn
 
-from pydantic import BaseModel, field_validator, Field, ValidationError
+from pydantic import BaseModel, field_validator, Field
 from fastapi import FastAPI, HTTPException, Request
 from mangum import Mangum
 from typing import List

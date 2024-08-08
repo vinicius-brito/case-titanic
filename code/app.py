@@ -1,4 +1,4 @@
-# Autor: Vinicius Eduardo Neres Brtio
+# Autor: Vinicius Eduardo Neres Brito
 # Data: 2024-08-08
 
 import os

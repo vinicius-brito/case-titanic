@@ -18,7 +18,7 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
 - `/code/tmp/model.pkl`: Modelo de Machine Learning treinado.
 - `main.tf`: Arquivo de configuração do Terraform para provisionar a infraestrutura.
 - `/code`: Diretório da aplicação FastAPI.
-- `openapi.yaml`: Especificação do contrato OpenAPI 3.1.0.
+- `openapi.json`: Especificação do contrato OpenAPI 3.1.0.
 
 ## Instruções para Configuração e Execução
 

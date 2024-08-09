@@ -1,6 +1,10 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "FastAPI", "version": "0.1.0" },
+  "info": {
+    "title": "API de Previsão de Sobrevivência do Titanic",
+    "description": "Esta API prevê a probabilidade de sobrevivência de passageiros do Titanic usando um modelo de Machine Learning.",
+    "version": "1.0.0"
+  },
   "paths": {
     "/": {
       "get": {
@@ -10,7 +14,11 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": { "application/json": { "schema": {} } }
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
         }
       }
@@ -40,7 +48,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserInput" }
+              "schema": {
+                "$ref": "#/components/schemas/UserInput"
+              }
             }
           },
           "required": true
@@ -50,7 +60,19 @@
             "description": "Sucessful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Passenger" }
+                "schema": {
+                  "$ref": "#/components/schemas/Passenger"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           },
@@ -61,14 +83,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/InternalErrorResponse"
                 }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
               }
             }
           }
@@ -85,7 +99,10 @@
             "name": "id_passageiro",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "title": "Id Passageiro" }
+            "schema": {
+              "type": "string",
+              "title": "Id Passageiro"
+            }
           }
         ],
         "responses": {
@@ -113,7 +130,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -128,7 +147,10 @@
             "name": "id_passageiro",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "title": "Id Passageiro" }
+            "schema": {
+              "type": "string",
+              "title": "Id Passageiro"
+            }
           }
         ],
         "responses": {
@@ -156,7 +178,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -167,7 +191,12 @@
   "components": {
     "schemas": {
       "DeleteSuccessResponse": {
-        "properties": { "message": { "type": "string", "title": "Message" } },
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
         "type": "object",
         "required": ["message"],
         "title": "DeleteSuccessResponse"
@@ -186,7 +215,9 @@
       "GetPassengersSuccessResponse": {
         "properties": {
           "sobreviventes": {
-            "items": { "$ref": "#/components/schemas/Passenger" },
+            "items": {
+              "$ref": "#/components/schemas/Passenger"
+            },
             "type": "array",
             "title": "Sobreviventes"
           }
@@ -198,7 +229,9 @@
       "HTTPValidationError": {
         "properties": {
           "detail": {
-            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
             "type": "array",
             "title": "Detail"
           }
@@ -207,20 +240,33 @@
         "title": "HTTPValidationError"
       },
       "InternalErrorResponse": {
-        "properties": { "detail": { "type": "string", "title": "Detail" } },
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
         "type": "object",
         "required": ["detail"],
         "title": "InternalErrorResponse"
       },
       "NotFoundErrorResponse": {
-        "properties": { "detail": { "type": "string", "title": "Detail" } },
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
         "type": "object",
         "required": ["detail"],
         "title": "NotFoundErrorResponse"
       },
       "Passenger": {
         "properties": {
-          "id": { "type": "string", "title": "Id" },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "probabilidade_sobrevivencia": {
             "type": "number",
             "title": "Probabilidade Sobrevivencia"
@@ -233,7 +279,9 @@
       "UserInput": {
         "properties": {
           "caracteristicas": {
-            "items": { "type": "number" },
+            "items": {
+              "type": "number"
+            },
             "type": "array",
             "title": "Caracteristicas",
             "example": [22.5, 0, 1, 54.3, 2, 0, 0, 1]
@@ -246,12 +294,27 @@
       "ValidationError": {
         "properties": {
           "loc": {
-            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
             "type": "array",
             "title": "Location"
           },
-          "msg": { "type": "string", "title": "Message" },
-          "type": { "type": "string", "title": "Error Type" }
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
         },
         "type": "object",
         "required": ["loc", "msg", "type"],

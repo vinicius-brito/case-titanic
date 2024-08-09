@@ -9,15 +9,15 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
 ### Funcionalidades
 
 - **POST /sobreviventes**: Recebe um JSON com um array de características e retorna a probabilidade de sobrevivência do passageiro junto com o ID do passageiro.
-- **GET /sobreviventes**: Retorna uma lista de passageiros que já foram avaliados.
+- **GET /sobreviventes**: Retorna uma lista de passageiros que já foram avaliados. Sem paginação.
 - **GET /sobreviventes/{id}**: Retorna a probabilidade de sobrevivência do passageiro com o ID informado.
 - **DELETE /sobreviventes/{id}**: Deleta o passageiro com o ID informado.
 
 ### Estrutura do Repositório
 
 - `/modelo/model.pkl`: Modelo de Machine Learning treinado.
-- `/terraform`: Arquivos de configuração do Terraform para provisionar a infraestrutura.
-- `/lambda`: Código da função Lambda em Python.
+- `main.tf`: Arquivo de configuração do Terraform para provisionar a infraestrutura.
+- `/code`: Diretório da aplicação FastAPI.
 - `openapi.yaml`: Especificação do contrato OpenAPI 3.0.
 
 ## Instruções para Configuração e Execução
@@ -51,24 +51,10 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
     terraform apply
     ```
 
-### Executando a Aplicação
+### Usando a Aplicação
 
-1. Faça o deploy da função Lambda:
-    ```sh
-    cd lambda
-    zip -r function.zip .
-    aws lambda update-function-code --function-name <NOME_DA_FUNCAO> --zip-file fileb://function.zip
-    ```
+1. Seguindo os passos descritos acima, capture as urls da função lambda e a url da API (API Gateway).
 
-2. Verifique se a API Gateway está configurada corretamente e obtenha a URL base da API.
+2. Verifique se a API Gateway está configurada corretamente e implantada (dev).
 
 3. Utilize ferramentas como [Postman](https://www.postman.com/) ou [curl](https://curl.se/) para testar os endpoints da API.
-
-### Observações
-
-- Certifique-se de que as permissões do IAM estão configuradas corretamente para permitir que o Terraform crie os recursos necessários.
-- O DynamoDB não será provisionado automaticamente devido ao baixo volume de requisições esperado.
-
-## Prazo de Entrega
-
-Você possui o prazo de 7 dias corridos para entrega do case, uma vez recebido o link para este repositório.

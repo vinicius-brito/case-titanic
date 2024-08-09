@@ -18,7 +18,7 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
 - `/code/tmp/model.pkl`: Modelo de Machine Learning treinado.
 - `main.tf`: Arquivo de configuração do Terraform para provisionar a infraestrutura.
 - `/code`: Diretório da aplicação FastAPI.
-- `openapi.yaml`: Especificação do contrato OpenAPI 3.0.
+- `openapi.yaml`: Especificação do contrato OpenAPI 3.1.0.
 
 ## Instruções para Configuração e Execução
 
@@ -55,7 +55,7 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
 
 1. Seguindo os passos descritos acima, capture a url da função lambda e a url da API (API Gateway).
 
-2. Verifique se a API Gateway implantada (dev).
+2. Verifique se a API Gateway está devidamente implantada (dev).
 
 3. Utilize ferramentas como [Postman](https://www.postman.com/) ou [curl](https://curl.se/) para testar os endpoints da API.
 

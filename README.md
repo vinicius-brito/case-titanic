@@ -1,63 +1,63 @@
-# Case Titanic
+# Titanic Case
 
-Repositório com a solução para o case do Titanic para a vaga de Engenheiro de Software no time de Dados PRG - Itaú.
+Repository with the solution for the Titanic case for the Software Engineer vacancy in the PRG Data team - Itaú.
 
-## Descrição do Projeto
+## Project Description
 
-Este projeto implementa uma API para prever a probabilidade de sobrevivência de passageiros do Titanic usando um modelo de Machine Learning. A API é construída utilizando infraestrutura como código (IaC) com Terraform e serviços da AWS, incluindo API Gateway, Lambda e DynamoDB.
+This project implements an API to predict the survival probability of Titanic passengers using a Machine Learning model. The API is built using Infrastructure as Code (IaC) with Terraform and AWS services, including API Gateway, Lambda and DynamoDB.
 
-### Funcionalidades
+### Functionalities
 
-- **POST /sobreviventes**: Recebe um JSON com um array de características e retorna a probabilidade de sobrevivência do passageiro junto com o ID do passageiro.
-- **GET /sobreviventes**: Retorna uma lista de passageiros que já foram avaliados. Sem paginação.
-- **GET /sobreviventes/{id}**: Retorna a probabilidade de sobrevivência do passageiro com o ID informado.
-- **DELETE /sobreviventes/{id}**: Deleta o passageiro com o ID informado.
+- **POST /sobreviventes**: Receives a JSON with an array of characteristics and returns the passenger's survival probability along with the passenger ID.
+- **GET /sobreviventes**: Returns a list of passengers who have already been evaluated. No pagination.
+- **GET /sobreviventes/{id}**: Returns the survival probability of the passenger with the given ID.
+- **DELETE /sobreviventes/{id}**: Deletes the passenger with the given ID.
 
-### Estrutura do Repositório
+### Repository Structure
 
-- `/code/tmp/model.pkl`: Modelo de Machine Learning treinado.
-- `main.tf`: Arquivo de configuração do Terraform para provisionar a infraestrutura.
-- `/code`: Diretório da aplicação FastAPI.
-- `openapi.json`: Especificação do contrato OpenAPI 3.1.0.
+- `/code/tmp/model.pkl`: Trained Machine Learning model.
+- `main.tf`: Terraform configuration file to provision infrastructure.
+- `/code`: FastAPI application directory.
+- `openapi.json`: OpenAPI 3.1.0 contract specification.
 
-## Instruções para Configuração e Execução
+## Setup and Run Instructions
 
-### Pré-requisitos
+### Prerequisites
 
-- [Terraform](https://www.terraform.io/downloads.html) instalado.
-- [AWS CLI](https://aws.amazon.com/cli/) configurado com as credenciais apropriadas.
-- [Docker](https://www.docker.com/) instalado.
-- [Python 3.8](https://www.python.org/downloads/) instalado.
+- [Terraform](https://www.terraform.io/downloads.html) installed.
+- [AWS CLI](https://aws.amazon.com/cli/) configured with appropriate credentials.
+- [Docker](https://www.docker.com/) installed.
+- [Python 3.8](https://www.python.org/downloads/) installed.
 
-### Passos para fazer o Deploy
+### Steps to Deploy
 
-1. Clone o repositório:
-    ```sh
-    git clone https://github.com/vinicius-brito/case-titanic.git
-    cd case-titanic
-    ```
+1. Clone the repository:
+```sh
+git clone https://github.com/vinicius-brito/case-titanic.git
+cd case-titanic
+```
 
-2. Inicialize o Terraform:
-    ```sh
-    terraform init
-    ```
+2. Initialize Terraform:
+```sh
+terraform init
+```
 
-3. Planeje a infraestrutura:
-    ```sh
-    terraform plan
-    ```
+3. Plan the infrastructure:
+```sh
+terraform plan
+```
 
-4. Aplique a infraestrutura:
-    ```sh
-    terraform apply
-    ```
+4. Apply the infrastructure:
+```sh
+terraform apply
+```
 
-### Usando a Aplicação
+### Using the Application
 
-1. Seguindo os passos descritos acima, capture a url da função lambda e a url da API (API Gateway).
+1. Following the steps described above, capture the lambda function url and the API url (API Gateway).
 
-2. Verifique se a API Gateway está devidamente implantada (dev).
+2. Verify that the API Gateway is properly deployed (dev).
 
-3. Utilize ferramentas como [Postman](https://www.postman.com/) ou [curl](https://curl.se/) para testar os endpoints da API.
+3. Use tools such as [Postman](https://www.postman.com/) or [curl](https://curl.se/) to test the API endpoints.
 
-4. Para acessar o Swagger do projeto, você pode acessar o caminho <lambda_url>/docs.
+4. To access the project's Swagger, you can access the path <lambda_url>/docs.

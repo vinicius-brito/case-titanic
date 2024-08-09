@@ -1,6 +1,6 @@
 # Titanic Case
 
-Repository with the solution for the Titanic case for the Software Engineer vacancy in the PRG Data team - Itaú.
+Repository with the solution for the Titanic case for the Software Engineer vacancy in the PRG Data Team - Itaú.
 
 ## Project Description
 

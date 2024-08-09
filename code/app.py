@@ -111,7 +111,7 @@ def send_log_to_cloudwatch(message):
 
 
 
-# ------------------ Middlwares ------------------ #
+# ------------------ Middlewares ------------------ #
 
 
 

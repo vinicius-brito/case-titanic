@@ -124,7 +124,7 @@ async def log_request(request: Request, call_next):
     logger.info(f'\tBody: {await request.body()}')
     logger.info(f'\tHeaders: {request.headers}')
     logger.info(f'\tIP: {request.client.host}')
-    logger.info(f'\tOrigem: {request.headers.get("origin")}')
+    logger.info(f'\tOrigin: {request.headers.get("origin")}')
 
     custom_request = Request(request.scope, request.receive)
     

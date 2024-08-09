@@ -26,7 +26,8 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
 
 - [Terraform](https://www.terraform.io/downloads.html) instalado.
 - [AWS CLI](https://aws.amazon.com/cli/) configurado com as credenciais apropriadas.
-- [Python 3.8.18](https://www.python.org/downloads/) instalado.
+- [Docker](https://www.docker.com/) instalado.
+- [Python 3.8](https://www.python.org/downloads/) instalado.
 
 ### Passos para fazer o Deploy
 

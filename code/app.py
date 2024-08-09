@@ -126,9 +126,8 @@ async def log_request(request: Request, call_next):
     logger.info(f'\tIP: {request.client.host}')
     logger.info(f'\tOrigem: {request.headers.get("origin")}')
 
-    # Create a custom request object with the body intact
     custom_request = Request(request.scope, request.receive)
-    # Pass the custom request with the body intact to the route handler
+    
     response = await call_next(custom_request)
     return response
 

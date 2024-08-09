@@ -28,7 +28,7 @@ Este projeto implementa uma API para prever a probabilidade de sobrevivência de
 - [AWS CLI](https://aws.amazon.com/cli/) configurado com as credenciais apropriadas.
 - [Python 3.8.18](https://www.python.org/downloads/) instalado.
 
-### Passos para Iniciar o Terraform
+### Passos para fazer o Deploy
 
 1. Clone o repositório:
     ```sh

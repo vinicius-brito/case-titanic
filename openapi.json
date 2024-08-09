@@ -1,0 +1,262 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "FastAPI", "version": "0.1.0" },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Index",
+        "description": "Rota de boas-vindas da aplicação.",
+        "operationId": "index__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/sobreviventes": {
+      "get": {
+        "summary": "Get Sobreviventes",
+        "description": "Rota GET que retorna todos os sobreviventes salvos no banco de dados.",
+        "operationId": "get_sobreviventes_sobreviventes_get",
+        "responses": {
+          "200": {
+            "description": "Sucessful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPassengersSuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Sobrevivente",
+        "description": "Rota POST que espera receber uma lista de características de um sobrevivente.\nPassa essas características para o escoramento de um modelo de Machine Learning treinado no dataset do Titanic.",
+        "operationId": "create_sobrevivente_sobreviventes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserInput" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Sucessful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Passenger" }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error. Indica que houve um problema ao calcular a probabilidade de sobrevivência.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sobreviventes/{id_passageiro}": {
+      "get": {
+        "summary": "Get Sobrevivente",
+        "description": "Rota GET que espera receber um ID de passageiro e retorna a probabilidade de sobrevivência do mesmo.",
+        "operationId": "get_sobrevivente_sobreviventes__id_passageiro__get",
+        "parameters": [
+          {
+            "name": "id_passageiro",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Id Passageiro" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucessful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPassengerSuccessResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Sobrevivente",
+        "description": "Rota DELETE que espera receber um ID de passageiro e deleta o registro do banco de dados.",
+        "operationId": "delete_sobrevivente_sobreviventes__id_passageiro__delete",
+        "parameters": [
+          {
+            "name": "id_passageiro",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Id Passageiro" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucessful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSuccessResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found Error. Indica que o ID de passageiro não foi encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeleteSuccessResponse": {
+        "properties": { "message": { "type": "string", "title": "Message" } },
+        "type": "object",
+        "required": ["message"],
+        "title": "DeleteSuccessResponse"
+      },
+      "GetPassengerSuccessResponse": {
+        "properties": {
+          "probabilidade_sobrevivencia": {
+            "type": "number",
+            "title": "Probabilidade Sobrevivencia"
+          }
+        },
+        "type": "object",
+        "required": ["probabilidade_sobrevivencia"],
+        "title": "GetPassengerSuccessResponse"
+      },
+      "GetPassengersSuccessResponse": {
+        "properties": {
+          "sobreviventes": {
+            "items": { "$ref": "#/components/schemas/Passenger" },
+            "type": "array",
+            "title": "Sobreviventes"
+          }
+        },
+        "type": "object",
+        "required": ["sobreviventes"],
+        "title": "GetPassengersSuccessResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InternalErrorResponse": {
+        "properties": { "detail": { "type": "string", "title": "Detail" } },
+        "type": "object",
+        "required": ["detail"],
+        "title": "InternalErrorResponse"
+      },
+      "NotFoundErrorResponse": {
+        "properties": { "detail": { "type": "string", "title": "Detail" } },
+        "type": "object",
+        "required": ["detail"],
+        "title": "NotFoundErrorResponse"
+      },
+      "Passenger": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "probabilidade_sobrevivencia": {
+            "type": "number",
+            "title": "Probabilidade Sobrevivencia"
+          }
+        },
+        "type": "object",
+        "required": ["id", "probabilidade_sobrevivencia"],
+        "title": "Passenger"
+      },
+      "UserInput": {
+        "properties": {
+          "caracteristicas": {
+            "items": { "type": "number" },
+            "type": "array",
+            "title": "Caracteristicas",
+            "example": [22.5, 0, 1, 54.3, 2, 0, 0, 1]
+          }
+        },
+        "type": "object",
+        "required": ["caracteristicas"],
+        "title": "UserInput"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

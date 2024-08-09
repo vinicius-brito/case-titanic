@@ -33,7 +33,11 @@ environment=os.getenv('ENVIRONMENT')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(
+    title="API de Previsão de Sobrevivência do Titanic",
+    description="Esta API prevê a probabilidade de sobrevivência de passageiros do Titanic usando um modelo de Machine Learning.",
+    version="1.0.0"
+)
 
 
 # Recursos AWS

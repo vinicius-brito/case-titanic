@@ -163,7 +163,7 @@ resource "aws_lambda_function_url" "api" {
   }
 }
 
-output "api_url" {
+output "lambda_url" {
   value = aws_lambda_function_url.api.function_url
 }
 
@@ -356,4 +356,8 @@ resource "aws_lambda_permission" "apigw_lambda" {
   function_name = aws_lambda_function.api.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.my_api.execution_arn}/*/*/*"
+}
+
+output "gateway_url" {
+  value = "${aws_api_gateway_deployment.deployment.invoke_url}/sobreviventes"
 }
